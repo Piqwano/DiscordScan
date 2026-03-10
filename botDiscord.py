@@ -213,18 +213,19 @@ async def yen(interaction: discord.Interaction):
         data = fetch_json(url)
         rate = data.get("rates", {}).get("JPY")
         if rate:
-            embed.add_field(
-                name=f"{flag} {code} → JPY",
-                value=(
-                    f"**1 {code} = ¥{rate:,.2f}**\n"
-                    f"100 {code} = ¥{rate*100:,.0f}\n"
-                    f"500 {code} = ¥{rate*500:,.0f}\n"
-                    f"1,000 {code} = ¥{rate*1000:,.0f}"
-                ),
-                inline=True,
+            value = (
+                f"**1 {code} = ¥{rate:,.2f}**\n"
+                f"50 {code} = ¥{rate*50:,.0f}\n"
+                f"100 {code} = ¥{rate*100:,.0f}\n"
+                f"500 {code} = ¥{rate*500:,.0f}\n"
+                f"1,000 {code} = ¥{rate*1000:,.0f}"
+            ) if code == "GBP" else (
+                f"**1 {code} = ¥{rate:,.2f}**\n"
+                f"100 {code} = ¥{rate*100:,.0f}\n"
+                f"500 {code} = ¥{rate*500:,.0f}\n"
+                f"1,000 {code} = ¥{rate*1000:,.0f}"
             )
-        else:
-            embed.add_field(name=f"{flag} {code} → JPY", value="Unavailable", inline=True)
+            embed.add_field(name=f"{flag} {code} → JPY", value=value, inline=True)
 
     embed.set_footer(text=f"Updated: {datetime.now(timezone.utc).strftime('%d %b %Y %H:%M UTC')} · Powered by ExchangeRate-API")
     await interaction.followup.send(embed=embed)
