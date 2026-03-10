@@ -280,50 +280,70 @@ async def phrase(interaction: discord.Interaction):
 
 active_quizzes = {}
 
-@tree.command(name="quiz", description="Japan & geography trivia from the internet! 🧠")
+JAPAN_QUIZ = [
+    ("What is the capital city of Japan?", ["Osaka", "Kyoto", "Hiroshima", "Tokyo"], 3, "Tokyo has been Japan's capital since 1869."),
+    ("What does 'Arigatou' mean?", ["Goodbye", "Excuse me", "Thank you", "Sorry"], 2, "Arigatou (ありがとう) means thank you."),
+    ("Which bullet train network operates in Japan?", ["TGV", "Eurostar", "Maglev Express", "Shinkansen"], 3, "The Shinkansen (新幹線) has run since 1964 with a near-perfect safety record."),
+    ("What is Japan's currency?", ["Won", "Yuan", "Ringgit", "Yen"], 3, "The Japanese Yen (円) has been Japan's currency since 1871."),
+    ("What is Mount Fuji's approximate height?", ["2,776m", "4,776m", "1,776m", "3,776m"], 3, "Mount Fuji stands at 3,776 metres — Japan's tallest mountain."),
+    ("What does 'Kanpai' mean?", ["Good night", "Goodbye", "Delicious", "Cheers"], 3, "Kanpai (乾杯) is the Japanese equivalent of 'cheers'."),
+    ("Which city hosted the 1964 Summer Olympics?", ["Osaka", "Kyoto", "Sapporo", "Tokyo"], 3, "Tokyo hosted the 1964 Summer Olympics, and again in 2021."),
+    ("What is the name of Japan's iconic red gate found at shrines?", ["Pagoda", "Tatami", "Kabuki", "Torii"], 3, "Torii gates (鳥居) mark the entrance to Shinto shrines."),
+    ("Which Japanese city was the imperial capital for over 1,000 years?", ["Nara", "Osaka", "Tokyo", "Kyoto"], 3, "Kyoto served as Japan's imperial capital from 794 until 1869."),
+    ("What does 'Itadakimasu' mean?", ["Goodbye", "Thank you for cooking", "I'm full", "Said before eating"], 3, "Itadakimasu (いただきます) is said before eating, expressing gratitude for the meal."),
+    ("What is 'Ramen'?", ["A rice dish", "A type of sushi", "A dessert", "A noodle soup"], 3, "Ramen is a noodle soup with various broths — one of Japan's most beloved dishes."),
+    ("What animal is on the Japanese imperial family's crest?", ["Dragon", "Tiger", "Crane", "Chrysanthemum"], 3, "The chrysanthemum (菊) has been the imperial seal since the 12th century."),
+    ("How many islands make up Japan?", ["Around 500", "Around 1,000", "Around 3,000", "Over 6,800"], 3, "Japan has over 6,800 islands, though most people live on just four of them."),
+    ("What is 'Hanami'?", ["A type of food", "A martial art", "A style of painting", "Viewing cherry blossoms"], 3, "Hanami (花見) is the tradition of gathering under cherry blossom trees in spring."),
+    ("Which Japanese city is famous for its deer that roam freely?", ["Kyoto", "Osaka", "Tokyo", "Nara"], 3, "Nara's deer are considered sacred messengers of the gods and roam freely in the park."),
+    ("What is 'Sumo'?", ["A card game", "A type of noodle", "A style of poetry", "Traditional Japanese wrestling"], 3, "Sumo is Japan's national sport with roots going back over 1,500 years."),
+    ("What does 'Kawaii' mean?", ["Scary", "Delicious", "Fast", "Cute"], 3, "Kawaii (かわいい) means cute — a hugely influential part of Japanese pop culture."),
+    ("Which company makes the Shinkansen trains?", ["Toyota", "Sony", "Honda", "Kawasaki Heavy Industries"], 3, "Kawasaki Heavy Industries is one of the main manufacturers of Shinkansen trains."),
+    ("What is Japan's national sport?", ["Judo", "Karate", "Kendo", "Sumo"], 3, "Sumo is officially Japan's national sport, though baseball is arguably more popular day-to-day."),
+    ("What is 'Manga'?", ["A type of food", "Japanese animated films", "Traditional theatre", "Japanese comic books"], 3, "Manga (漫画) refers to Japanese comic books and graphic novels."),
+    ("What is 'Anime'?", ["Traditional Japanese music", "A type of sushi", "Japanese poetry", "Japanese animated TV/film"], 3, "Anime refers to Japanese animated productions, globally popular since the 1990s."),
+    ("What is the name of the famous Japanese theatrical art form with elaborate makeup?", ["Sumo", "Origami", "Ikebana", "Kabuki"], 3, "Kabuki (歌舞伎) is a classical form of Japanese theatre known for its stylised performances."),
+    ("What does 'Domo arigato' mean?", ["Good morning", "Excuse me", "Goodbye", "Thank you very much"], 3, "Domo arigato (どうもありがとう) means thank you very much."),
+    ("Which Japanese city was devastated by an atomic bomb in 1945?", ["Osaka", "Tokyo", "Nagasaki", "Hiroshima"], 3, "Hiroshima was hit on August 6, 1945. Nagasaki was hit three days later."),
+    ("What is 'Origami'?", ["Japanese flower arranging", "Japanese calligraphy", "Japanese sword making", "The art of paper folding"], 3, "Origami (折り紙) is the traditional Japanese art of folding paper into decorative shapes."),
+    ("What is 'Ikebana'?", ["Japanese wrestling", "Japanese tea ceremony", "A type of ramen", "Japanese flower arranging"], 3, "Ikebana (生け花) is the Japanese art of flower arrangement."),
+    ("What is the Japanese tea ceremony called?", ["Origami", "Ikebana", "Kabuki", "Chado"], 3, "Chado or Sado (茶道) is the Japanese way of tea — a ceremonial practice."),
+    ("What is 'Tempura'?", ["Grilled skewers", "Fermented soybeans", "Raw fish on rice", "Lightly battered deep-fried food"], 3, "Tempura (天ぷら) is seafood or vegetables coated in a light batter and deep-fried."),
+    ("What is 'Natto'?", ["A type of sushi", "A style of ramen", "Grilled chicken", "Fermented soybeans"], 3, "Natto (納豆) is fermented soybeans with a strong smell and sticky texture — divisive even in Japan."),
+    ("Which mountain range runs through central Japan?", ["The Rockies", "The Alps", "The Andes", "The Japanese Alps"], 3, "The Japanese Alps (日本アルプス) span three mountain ranges through the centre of Honshu."),
+    ("What is 'Onsen'?", ["A traditional inn", "A type of noodle", "A summer festival", "A natural hot spring bath"], 3, "Onsen (温泉) are natural hot spring baths — a cornerstone of Japanese culture and travel."),
+    ("What is a 'Ryokan'?", ["A martial art", "A type of anime", "A street food", "A traditional Japanese inn"], 3, "A Ryokan (旅館) is a traditional Japanese inn featuring tatami rooms and onsen."),
+    ("What is 'Sake'?", ["Rice wine", "Barley beer", "Green tea", "Plum spirit"], 0, "Sake (酒) is a traditional Japanese alcoholic drink brewed from fermented rice."),
+    ("What does 'Sumimasen' mean?", ["Thank you", "Goodbye", "Delicious", "Excuse me / Sorry"], 3, "Sumimasen (すみません) means excuse me or sorry — one of the most useful phrases in Japan."),
+    ("What is the Japanese word for 'delicious'?", ["Kawaii", "Sugoi", "Kanpai", "Oishii"], 3, "Oishii (おいしい) means delicious — you'll use this a lot in Japan!"),
+    ("What is 'Pachinko'?", ["A type of sushi", "A traditional dance", "A martial art", "A Japanese arcade gambling game"], 3, "Pachinko (パチンコ) is a mechanical arcade game used as a form of gambling, found across Japan."),
+    ("Which Japanese city is known as the 'Kitchen of Japan'?", ["Tokyo", "Kyoto", "Sapporo", "Osaka"], 3, "Osaka (大阪) is nicknamed 'Kuidaore' or the kitchen of Japan due to its incredible food culture."),
+    ("What is 'Karaoke'?", ["A type of drum", "A style of painting", "A tea blend", "Singing along to backing tracks"], 3, "Karaoke (カラオケ) was invented in Japan in the 1970s and remains hugely popular worldwide."),
+    ("What is Japan's largest island?", ["Kyushu", "Shikoku", "Hokkaido", "Honshu"], 3, "Honshu (本州) is Japan's largest island and home to Tokyo, Osaka and Kyoto."),
+    ("What is 'Judo'?", ["Sword fighting", "A type of archery", "Sumo wrestling", "A martial art using throws and grappling"], 3, "Judo (柔道) was developed in Japan in 1882 and became an Olympic sport in 1964."),
+    ("How do you say 'good morning' in Japanese?", ["Konnichiwa", "Oyasumi", "Sayonara", "Ohayou gozaimasu"], 3, "Ohayou gozaimasu (おはようございます) means good morning. Konnichiwa is hello (daytime)."),
+    ("What is 'Zen'?", ["A type of food", "A martial art", "A style of clothing", "A school of Buddhism emphasising meditation"], 3, "Zen (禅) is a school of Mahayana Buddhism that emphasises meditation and mindfulness."),
+    ("What is the Japanese concept of continuous improvement called?", ["Wabi-sabi", "Ikigai", "Bushido", "Kaizen"], 3, "Kaizen (改善) means continuous improvement — a philosophy applied in business and daily life."),
+    ("What does 'Ikigai' mean?", ["A type of food", "A fighting style", "Flower arranging", "Reason for being / purpose in life"], 3, "Ikigai (生き甲斐) is the Japanese concept of finding your reason to get up in the morning."),
+    ("What is 'Wagyu'?", ["A type of noodle", "A style of sushi", "A Japanese festival", "Premium Japanese beef"], 3, "Wagyu (和牛) refers to Japanese cattle breeds known for their intense marbling and rich flavour."),
+    ("What does the word 'Japan' mean in Japanese?", ["Island nation", "Land of the rising sun", "Eastern kingdom", "Nihon/Nippon"], 3, "Japan is called Nihon or Nippon (日本) which literally means 'origin of the sun'."),
+    ("Which famous Japanese video game franchise features a plumber?", ["Zelda", "Pokemon", "Final Fantasy", "Mario"], 3, "Super Mario was created by Nintendo's Shigeru Miyamoto and debuted in 1981."),
+    ("What is 'Pokemon' short for?", ["Pocket Monsters", "Power Kombat", "Portable Kingdom", "Pixel Monsters"], 0, "Pokemon is short for Pocket Monsters (ポケットモンスター), created by Nintendo in 1996."),
+    ("Which company created the PlayStation?", ["Nintendo", "Sega", "Microsoft", "Sony"], 3, "Sony released the original PlayStation in Japan in December 1994."),
+    ("What is 'Matcha'?", ["A type of sake", "A dried seaweed", "A rice dish", "Powdered green tea"], 3, "Matcha (抹茶) is finely ground green tea powder used in the tea ceremony and many desserts."),
+]
+
+@tree.command(name="quiz", description="Japan trivia quiz! 🧠🇯🇵")
 async def quiz(interaction: discord.Interaction):
     import random
-    import html
-
-    await interaction.response.defer()
-
-    # Try Japan-specific first (category 19 = Science: Nature, not perfect but we rotate)
-    # Use category 22 = Geography for broad trivia, occasionally pull Japan questions
-    urls = [
-        "https://opentdb.com/api.php?amount=1&category=22&difficulty=medium&type=multiple",  # Geography
-        "https://opentdb.com/api.php?amount=1&category=23&difficulty=medium&type=multiple",  # History
-        "https://opentdb.com/api.php?amount=1&type=multiple",  # Any category fallback
-    ]
-    data = {}
-    for url in urls:
-        data = fetch_json(url)
-        if data.get("results"):
-            break
-
-    results = data.get("results", [])
-
-    if not results:
-        # Fallback to a local question if API fails
-        fallback = {
-            "q": "What is the capital city of Japan?",
-            "options": ["Osaka", "Kyoto", "Tokyo", "Hiroshima"],
-            "answer": 2,
-        }
-        question_text = fallback["q"]
-        options       = fallback["options"]
-        correct       = options[fallback["answer"]]
-    else:
-        result        = results[0]
-        question_text = html.unescape(result["question"])
-        correct       = html.unescape(result["correct_answer"])
-        incorrects    = [html.unescape(a) for a in result["incorrect_answers"]]
-        options       = incorrects + [correct]
-        random.shuffle(options)
-
-    letters = ["🇦", "🇧", "🇨", "🇩"]
+    q_text, options, correct_idx, explanation = random.choice(JAPAN_QUIZ)
+    options = options[:]  # copy
+    correct = options[correct_idx]
+    random.shuffle(options)
     correct_idx = options.index(correct)
+    letters = ["🇦", "🇧", "🇨", "🇩"]
 
-    embed = discord.Embed(title="🧠 Trivia Quiz", description=f"**{question_text}**", color=0xE60026)
+    embed = discord.Embed(title="🧠 Japan Quiz", description=f"**{q_text}**", color=0xE60026)
     for i, opt in enumerate(options):
         embed.add_field(name=f"{letters[i]} {opt}", value="", inline=False)
     embed.set_footer(text="Click a button to answer! · 30 seconds")
@@ -345,20 +365,22 @@ async def quiz(interaction: discord.Interaction):
                 for item in self.children:
                     item.disabled = True
                 if idx == correct_idx:
-                    result_text = f"✅ Correct! The answer was **{correct}**."
+                    result_text = f"✅ Correct!\n{explanation}"
                     colour = 0x00FF00
                 else:
-                    result_text = f"❌ Wrong! The correct answer was **{correct}**."
+                    result_text = f"❌ Wrong! The correct answer was **{correct}**.\n{explanation}"
                     colour = 0xFF0000
                 result_embed = discord.Embed(
-                    title="🧠 Trivia Quiz — Result",
+                    title="🧠 Japan Quiz — Result",
                     description=result_text,
                     color=colour
                 )
                 await btn_interaction.response.edit_message(embed=result_embed, view=self)
             return callback
 
-    await interaction.followup.send(embed=embed, view=QuizView())
+    await interaction.response.send_message(embed=embed, view=QuizView())
+
+
 
 
 
