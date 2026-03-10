@@ -392,6 +392,110 @@ async def convert(interaction: discord.Interaction, amount: float, currency: str
     await interaction.followup.send(embed=embed)
 
 
+# ── Random commands ──────────────────────
+
+JAPANESE_FOODS = [
+    ("Ramen 🍜", "Hokkaido", "A rich noodle soup with various broths — miso, soy, or pork-based tonkotsu. Every region has its own style."),
+    ("Sushi 🍣", "Tokyo (Edo)", "Vinegared rice topped with fresh fish or seafood. Edomae-style sushi originated in Tokyo in the 19th century."),
+    ("Takoyaki 🐙", "Osaka", "Ball-shaped snacks made of wheat batter filled with diced octopus, tempura scraps, and ginger. A street food staple."),
+    ("Okonomiyaki 🥞", "Osaka / Hiroshima", "A savoury pancake filled with cabbage, meat or seafood, topped with mayo and okonomiyaki sauce. Often called 'Japanese pizza'."),
+    ("Tempura 🍤", "Tokyo", "Lightly battered and deep-fried seafood or vegetables. The batter is kept cold for a delicate, crispy texture."),
+    ("Yakitori 🍢", "Nationwide", "Skewered chicken grilled over charcoal. Every part of the chicken is used — thigh, skin, liver, heart and more."),
+    ("Tonkatsu 🥩", "Tokyo", "A breaded and deep-fried pork cutlet served with shredded cabbage and a thick Worcestershire-based sauce."),
+    ("Udon 🍜", "Kagawa", "Thick wheat noodles served hot or cold in a mild dashi broth. Kagawa prefecture is considered the udon capital of Japan."),
+    ("Soba 🍜", "Nagano", "Thin buckwheat noodles served hot in broth or cold with a dipping sauce. Popular in mountain regions."),
+    ("Onigiri 🍙", "Nationwide", "Rice balls wrapped in nori with fillings like salmon, tuna mayo, or pickled plum. The ultimate convenience food."),
+    ("Karaage 🍗", "Nationwide", "Japanese fried chicken marinated in soy, ginger and garlic, then fried until crispy. Often served with lemon and mayo."),
+    ("Gyoza 🥟", "Utsunomiya", "Pan-fried dumplings filled with pork and cabbage. Utsunomiya city holds an annual gyoza festival celebrating them."),
+    ("Shabu-Shabu 🥘", "Osaka", "Thinly sliced meat swirled in a hot pot of kombu broth, then dipped in ponzu or sesame sauce."),
+    ("Matcha Desserts 🍵", "Kyoto / Uji", "Uji in Kyoto is the matcha capital of Japan — matcha ice cream, mochi, parfaits and cakes are everywhere."),
+    ("Taiyaki 🐟", "Nationwide", "Fish-shaped waffles filled with sweet red bean paste, custard, or chocolate. A beloved street food snack."),
+    ("Yakisoba 🍜", "Nationwide", "Stir-fried wheat noodles with pork, cabbage and vegetables, seasoned with a tangy sauce. A festival staple."),
+    ("Miso Soup 🍵", "Nationwide", "A traditional soup made from fermented soybean paste with tofu, seaweed and spring onion. Served with almost every meal."),
+    ("Kaiseki 🍱", "Kyoto", "A multi-course fine dining experience featuring seasonal ingredients. Considered the pinnacle of Japanese cuisine."),
+    ("Natto 🫘", "Ibaraki", "Fermented soybeans with a sticky texture and strong smell. Divisive even among Japanese people — but incredibly nutritious."),
+    ("Conveyor Belt Sushi 🍣", "Osaka", "Kaiten-zushi — sushi served on a rotating conveyor belt. Invented in Osaka in 1958, now found across the country."),
+]
+
+JAPANESE_WORDS = [
+    ("木漏れ日", "Komorebi", "noun", "The interplay of light and leaves — sunlight filtering through trees.", "木漏れ日が美しい (Komorebi ga utsukushii) — The sunlight through the trees is beautiful."),
+    ("侘寂", "Wabi-sabi", "philosophy", "Finding beauty in imperfection, impermanence, and incompleteness.", "日本の陶器には侘寂がある — Japanese pottery has wabi-sabi."),
+    ("積ん読", "Tsundoku", "noun", "Buying books and letting them pile up unread.", "また積ん読が増えた — My tsundoku pile has grown again."),
+    ("なつかしい", "Natsukashii", "adjective", "A bittersweet nostalgic feeling for the past.", "この曲はなつかしい — This song makes me nostalgic."),
+    ("一期一会", "Ichi-go ichi-e", "phrase", "Treasure every encounter, as it will never recur. A tea ceremony concept.", "一期一会の精神で生きる — Live by the spirit of ichi-go ichi-e."),
+    ("頑張る", "Ganbaru", "verb", "To persist, do your best, give it your all. One of the most used words in Japanese.", "頑張れ！(Ganbare!) — Do your best! / You've got this!"),
+    ("物の哀れ", "Mono no aware", "phrase", "The bittersweet awareness of impermanence — like cherry blossoms falling.", "桜の散る様子に物の哀れを感じる — The falling cherry blossoms evoke mono no aware."),
+    ("甘える", "Amaeru", "verb", "To depend on someone's goodwill or indulge in their kindness.", "子供が親に甘える — A child depends on their parent's affection."),
+    ("空気を読む", "Kuuki wo yomu", "phrase", "Literally 'read the air' — to pick up on unspoken social cues.", "空気を読んで静かにした — I read the room and stayed quiet."),
+    ("縁側", "Engawa", "noun", "The narrow wooden veranda on the outside of a traditional Japanese house.", "縁側でお茶を飲む — Drink tea on the engawa."),
+    ("花見", "Hanami", "noun", "The tradition of gathering under cherry blossom trees to appreciate their beauty.", "来週花見をしよう！— Let's do hanami next week!"),
+    ("間", "Ma", "noun", "Negative space or pause — the meaningful gap between things in art, music or conversation.", "音楽の間が大切だ — The pause in music is important."),
+    ("おつかれさま", "Otsukaresama", "phrase", "Said to someone after hard work — 'you must be tired' / 'well done'. Has no direct English equivalent.", "おつかれさまでした！— Great work today!"),
+    ("引きこもり", "Hikikomori", "noun", "Acute social withdrawal — staying isolated at home for months or years.", "引きこもりは社会問題だ — Hikikomori is a social issue."),
+    ("木漏れ日", "Komorebi", "noun", "The interplay of light and leaves when sunlight filters through trees.", "木漏れ日の中を歩く — Walking through the komorebi."),
+]
+
+
+@tree.command(name="food", description="Random Japanese dish — what to eat in Japan 🍜")
+async def food(interaction: discord.Interaction):
+    import random
+    name, region, description = random.choice(JAPANESE_FOODS)
+    embed = discord.Embed(title=f"🍽️ Japanese Food: {name}", description=description, color=0xE60026)
+    embed.add_field(name="📍 Region", value=region, inline=True)
+    embed.set_footer(text="Use /food again for another dish!")
+    await interaction.response.send_message(embed=embed)
+
+
+@tree.command(name="anime", description="Random anime recommendation 🎌")
+async def anime(interaction: discord.Interaction):
+    await interaction.response.defer()
+    import random
+
+    # Jikan API — free, no key needed, based on MyAnimeList
+    page = random.randint(1, 30)
+    url  = f"https://api.jikan.moe/v4/top/anime?page={page}&limit=5"
+    data = fetch_json(url)
+    items = data.get("data", [])
+
+    if not items:
+        await interaction.followup.send("❌ Couldn't fetch anime right now. Try again in a moment!", ephemeral=True)
+        return
+
+    a        = random.choice(items)
+    title_en = a.get("title_english") or a.get("title", "Unknown")
+    score    = a.get("score", "N/A")
+    episodes = a.get("episodes", "?")
+    synopsis = a.get("synopsis", "No description available.")
+    if len(synopsis) > 300:
+        synopsis = synopsis[:300] + "..."
+    genres   = ", ".join(g["name"] for g in a.get("genres", [])[:3]) or "N/A"
+    year     = a.get("year", "N/A")
+    url_mal  = a.get("url", "")
+    image    = a.get("images", {}).get("jpg", {}).get("image_url", "")
+
+    embed = discord.Embed(title=f"🎌 {title_en}", description=synopsis, color=0xE60026, url=url_mal)
+    embed.add_field(name="⭐ Score",    value=str(score),    inline=True)
+    embed.add_field(name="📺 Episodes", value=str(episodes), inline=True)
+    embed.add_field(name="📅 Year",     value=str(year),     inline=True)
+    embed.add_field(name="🏷️ Genres",   value=genres,        inline=False)
+    if image:
+        embed.set_thumbnail(url=image)
+    embed.set_footer(text="Use /anime again for another! · Data from MyAnimeList")
+    await interaction.followup.send(embed=embed)
+
+
+@tree.command(name="word", description="Random Japanese word with meaning and example 📖")
+async def word(interaction: discord.Interaction):
+    import random
+    kanji, romaji, pos, meaning, example = random.choice(JAPANESE_WORDS)
+    embed = discord.Embed(title="📖 Japanese Word", color=0xE60026)
+    embed.add_field(name="Word",          value=f"**{kanji}**", inline=True)
+    embed.add_field(name="Pronunciation", value=f"*{romaji}*",  inline=True)
+    embed.add_field(name="Type",          value=pos,            inline=True)
+    embed.add_field(name="Meaning",       value=meaning,        inline=False)
+    embed.add_field(name="Example",       value=f"_{example}_", inline=False)
+    embed.set_footer(text="Use /word again for another one!")
+    await interaction.response.send_message(embed=embed)
 
 
 async def midnight_ping_loop():
@@ -434,7 +538,7 @@ async def on_ready():
     ))
     client.loop.create_task(midnight_ping_loop())
     print(f"✅ Logged in as {client.user} (ID: {client.user.id})")
-    print(f"   Commands: /ping /japan /trip /weather /yen /fact /phrase /quiz /convert")
+    print(f"   Commands: /ping /japan /trip /weather /yen /fact /phrase /quiz /convert /food /anime /word")
     print(f"   Midnight ping active → #{GENERAL_CHANNEL_NAME}")
 
 client.run(BOT_TOKEN)
