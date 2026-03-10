@@ -22,8 +22,7 @@ JAPAN_DEPARTURE = datetime(2026, 5, 25, 10, 0, 0, tzinfo=timezone.utc)
 JAPAN_RETURN    = datetime(2026, 6, 12, 0, 0, 0, tzinfo=timezone.utc)
 TRIP_DAYS       = 18
 
-# Melbourne midnight = 14:00 UTC (AEST = UTC+10)
-MIDNIGHT_PING_HOUR_UTC = 14
+# Melbourne midnight is calculated dynamically to handle AEDT/AEST automatically
 GENERAL_CHANNEL_NAME   = "general"
 
 JAPAN_FACTS = [
@@ -245,17 +244,18 @@ async def fact(interaction: discord.Interaction):
 async def midnight_ping_loop():
     await client.wait_until_ready()
     while not client.is_closed():
-        now = datetime.now(timezone.utc)
+        import zoneinfo
+        melb_tz   = zoneinfo.ZoneInfo("Australia/Melbourne")
+        now_melb  = datetime.now(melb_tz)
 
-        # Next midnight Melbourne time (UTC+10 in May/June = AEST)
-        next_ping = now.replace(hour=MIDNIGHT_PING_HOUR_UTC, minute=0, second=0, microsecond=0)
-        if now >= next_ping:
-            next_ping += timedelta(days=1)
-
-        wait_seconds = (next_ping - now).total_seconds()
+        # Next midnight Melbourne time
+        next_midnight_melb = (now_melb + timedelta(days=1)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        wait_seconds = (next_midnight_melb - now_melb).total_seconds()
         await asyncio.sleep(wait_seconds)
 
-        # Find the general channel and send the ping
+        # Find general channel and send ping
         for guild in client.guilds:
             channel = discord.utils.get(guild.text_channels, name=GENERAL_CHANNEL_NAME)
             if channel:
