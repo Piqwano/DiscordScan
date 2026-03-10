@@ -239,7 +239,160 @@ async def fact(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
 
 
-# ── Midnight ping task ───────────────────
+@tree.command(name="phrase", description="Random useful Japanese phrase with pronunciation 🗣️")
+async def phrase(interaction: discord.Interaction):
+    import random
+    phrases = [
+        ("ありがとうございます", "Arigatou gozaimasu", "Thank you very much"),
+        ("すみません", "Sumimasen", "Excuse me / Sorry"),
+        ("これはいくらですか？", "Kore wa ikura desu ka?", "How much is this?"),
+        ("トイレはどこですか？", "Toire wa doko desu ka?", "Where is the toilet?"),
+        ("英語を話せますか？", "Eigo wo hanasemasu ka?", "Can you speak English?"),
+        ("メニューをください", "Menyuu wo kudasai", "Please give me the menu"),
+        ("おすすめは何ですか？", "Osusume wa nan desu ka?", "What do you recommend?"),
+        ("水をください", "Mizu wo kudasai", "Please give me water"),
+        ("駅はどこですか？", "Eki wa doko desu ka?", "Where is the train station?"),
+        ("写真を撮ってもいいですか？", "Shashin wo totte mo ii desu ka?", "May I take a photo?"),
+        ("おいしい！", "Oishii!", "Delicious!"),
+        ("いただきます", "Itadakimasu", "Said before eating (let's eat)"),
+        ("ごちそうさまでした", "Gochisousama deshita", "Said after eating (thank you for the meal)"),
+        ("一枚ください", "Ichimai kudasai", "One ticket please"),
+        ("右", "Migi", "Right"),
+        ("左", "Hidari", "Left"),
+        ("まっすぐ", "Massugu", "Straight ahead"),
+        ("助けてください", "Tasukete kudasai", "Please help me"),
+        ("クレジットカードは使えますか？", "Kurejitto kaado wa tsukaemasu ka?", "Can I use a credit card?"),
+        ("袋はいりません", "Fukuro wa irimasen", "I don't need a bag"),
+        ("これをください", "Kore wo kudasai", "I'll have this please"),
+        ("乾杯！", "Kanpai!", "Cheers!"),
+        ("おやすみなさい", "Oyasumi nasai", "Good night"),
+        ("はい / いいえ", "Hai / Iie", "Yes / No"),
+        ("わかりません", "Wakarimasen", "I don't understand"),
+    ]
+    jp, romaji, english = random.choice(phrases)
+    embed = discord.Embed(title="🗣️ Japanese Phrase", color=0xE60026)
+    embed.add_field(name="Japanese", value=f"**{jp}**", inline=False)
+    embed.add_field(name="Pronunciation", value=f"*{romaji}*", inline=True)
+    embed.add_field(name="Meaning", value=english, inline=True)
+    embed.set_footer(text="Use /phrase again for another one!")
+    await interaction.response.send_message(embed=embed)
+
+
+active_quizzes = {}
+
+@tree.command(name="quiz", description="Japan & geography trivia from the internet! 🧠")
+async def quiz(interaction: discord.Interaction):
+    import random
+    import html
+
+    await interaction.response.defer()
+
+    # Try Japan-specific first (category 19 = Science: Nature, not perfect but we rotate)
+    # Use category 22 = Geography for broad trivia, occasionally pull Japan questions
+    urls = [
+        "https://opentdb.com/api.php?amount=1&category=22&difficulty=medium&type=multiple",  # Geography
+        "https://opentdb.com/api.php?amount=1&category=23&difficulty=medium&type=multiple",  # History
+        "https://opentdb.com/api.php?amount=1&type=multiple",  # Any category fallback
+    ]
+    data = {}
+    for url in urls:
+        data = fetch_json(url)
+        if data.get("results"):
+            break
+
+    results = data.get("results", [])
+
+    if not results:
+        # Fallback to a local question if API fails
+        fallback = {
+            "q": "What is the capital city of Japan?",
+            "options": ["Osaka", "Kyoto", "Tokyo", "Hiroshima"],
+            "answer": 2,
+        }
+        question_text = fallback["q"]
+        options       = fallback["options"]
+        correct       = options[fallback["answer"]]
+    else:
+        result        = results[0]
+        question_text = html.unescape(result["question"])
+        correct       = html.unescape(result["correct_answer"])
+        incorrects    = [html.unescape(a) for a in result["incorrect_answers"]]
+        options       = incorrects + [correct]
+        random.shuffle(options)
+
+    letters = ["🇦", "🇧", "🇨", "🇩"]
+    correct_idx = options.index(correct)
+
+    embed = discord.Embed(title="🧠 Trivia Quiz", description=f"**{question_text}**", color=0xE60026)
+    for i, opt in enumerate(options):
+        embed.add_field(name=f"{letters[i]} {opt}", value="", inline=False)
+    embed.set_footer(text="Click a button to answer! · 30 seconds")
+
+    class QuizView(discord.ui.View):
+        def __init__(self):
+            super().__init__(timeout=30)
+            for i, opt in enumerate(options):
+                btn = discord.ui.Button(
+                    label=f"{letters[i]} {opt}",
+                    custom_id=str(i),
+                    style=discord.ButtonStyle.secondary
+                )
+                btn.callback = self.make_callback(i)
+                self.add_item(btn)
+
+        def make_callback(self, idx):
+            async def callback(btn_interaction: discord.Interaction):
+                for item in self.children:
+                    item.disabled = True
+                if idx == correct_idx:
+                    result_text = f"✅ Correct! The answer was **{correct}**."
+                    colour = 0x00FF00
+                else:
+                    result_text = f"❌ Wrong! The correct answer was **{correct}**."
+                    colour = 0xFF0000
+                result_embed = discord.Embed(
+                    title="🧠 Trivia Quiz — Result",
+                    description=result_text,
+                    color=colour
+                )
+                await btn_interaction.response.edit_message(embed=result_embed, view=self)
+            return callback
+
+    await interaction.followup.send(embed=embed, view=QuizView())
+
+
+
+@tree.command(name="convert", description="Convert any amount of GBP or AUD to JPY 💴")
+@app_commands.describe(amount="The amount to convert", currency="GBP or AUD")
+@app_commands.choices(currency=[
+    app_commands.Choice(name="GBP 🇬🇧", value="GBP"),
+    app_commands.Choice(name="AUD 🇦🇺", value="AUD"),
+])
+async def convert(interaction: discord.Interaction, amount: float, currency: str):
+    await interaction.response.defer()
+
+    flag = "🇬🇧" if currency == "GBP" else "🇦🇺"
+    url  = f"https://open.er-api.com/v6/latest/{currency}"
+    data = fetch_json(url)
+    rate = data.get("rates", {}).get("JPY")
+
+    if rate:
+        result = amount * rate
+        embed  = discord.Embed(title=f"💴 {flag} {currency} → JPY", color=0xE60026)
+        embed.add_field(
+            name="Result",
+            value=f"**{amount:,.2f} {currency} = ¥{result:,.0f}**",
+            inline=False,
+        )
+        embed.add_field(name="Rate", value=f"1 {currency} = ¥{rate:,.2f}", inline=True)
+        embed.set_footer(text=f"Updated: {datetime.now(timezone.utc).strftime('%d %b %Y %H:%M UTC')} · Powered by ExchangeRate-API")
+    else:
+        embed = discord.Embed(title="❌ Error", description="Could not fetch exchange rate. Try again later.", color=0xFF0000)
+
+    await interaction.followup.send(embed=embed)
+
+
+
 
 async def midnight_ping_loop():
     await client.wait_until_ready()
@@ -281,7 +434,7 @@ async def on_ready():
     ))
     client.loop.create_task(midnight_ping_loop())
     print(f"✅ Logged in as {client.user} (ID: {client.user.id})")
-    print(f"   Commands: /ping /japan /trip /weather /yen /fact")
+    print(f"   Commands: /ping /japan /trip /weather /yen /fact /phrase /quiz /convert")
     print(f"   Midnight ping active → #{GENERAL_CHANNEL_NAME}")
 
 client.run(BOT_TOKEN)
