@@ -122,8 +122,8 @@ def build_countdown_embed() -> discord.Embed:
     embed.add_field(name="📆 Weeks",  value=f"`{weeks}w {remaining_days}d`", inline=True)
     embed.add_field(name="🗓️ Months", value=f"`~{months} months`",       inline=True)
     embed.add_field(name=f"🚀 Trip Progress  {progress_pct}%", value=f"`{bar}`", inline=False)
-    embed.add_field(name="🛫 Outbound", value="QF79 · Points upgrade confirmed ✅", inline=True)
-    embed.add_field(name="🛬 Return",   value="QF80 · Bid Now upgrade 🤞",          inline=True)
+    embed.add_field(name="🛫 Outbound", value="QF79 Melbourne → Tokyo", inline=True)
+    embed.add_field(name="🛬 Return",   value="QF80 Tokyo → Melbourne", inline=True)
     embed.set_footer(text=f"Last updated: {now.strftime('%d %b %Y %H:%M UTC')} · Ganbatte Rob! 🇯🇵")
     return embed
 
@@ -149,8 +149,8 @@ async def japan(interaction: discord.Interaction):
 async def trip(interaction: discord.Interaction):
     embed = discord.Embed(title="🗾 Rob's Japan Trip 2026 — Full Details", color=0xE60026)
     embed.add_field(name="📅 Dates",      value="25 May → 12 June 2026 (18 days)",                       inline=False)
-    embed.add_field(name="✈️ Outbound",   value="QF79 Melbourne → Tokyo\nPoints upgrade: **Confirmed** ✅", inline=True)
-    embed.add_field(name="✈️ Return",     value="QF80 Tokyo → Melbourne\nBid Now upgrade: **Pending** 🤞",  inline=True)
+    embed.add_field(name="✈️ Outbound",   value="QF79 Melbourne → Tokyo", inline=True)
+    embed.add_field(name="✈️ Return",     value="QF80 Tokyo → Melbourne", inline=True)
     embed.add_field(name="🏔️ Activities", value="Exploring · Food · Culture · Travel",                    inline=True)
     embed.set_footer(text="Japan 2026 🇯🇵")
     await interaction.response.send_message(embed=embed)
