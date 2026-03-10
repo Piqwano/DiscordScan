@@ -139,6 +139,10 @@ async def trip(interaction: discord.Interaction):
 @client.event
 async def on_ready():
     await tree.sync()
+    await client.change_presence(activity=discord.Activity(
+        type=discord.ActivityType.watching,
+        name="🇯🇵 Counting down to Japan"
+    ))
     print(f"✅ Logged in as {client.user} (ID: {client.user.id})")
     print(f"   Slash commands synced globally.")
     print(f"   Use /ping to earn the Active Developer badge!")
